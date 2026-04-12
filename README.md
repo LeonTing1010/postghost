@@ -8,22 +8,19 @@ Reddit silently removes posts without telling you. You can still see your own po
 
 1. You post on Reddit
 2. Extension checks automatically (30 seconds after posting)
-3. A badge appears: **LIVE**, **GHOST**, or **DYING**
+3. A badge appears: **LIVE** or **GHOST** — plus WHY it was removed
 
 ```
-LIVE   My SaaS hit $9k MRR last month...        328  67
-GHOST  Got my posts removed 3 times with no...     1   6
-       spam_filter — karma 12, need 50
-DYING  Anyone else given up on Reddit marketing?  91  95
+LIVE   My SaaS hit $9k MRR last month...
+GHOST  Got my posts removed 3 times with no...
+       spam_filter — Reddit's spam filter removed this post
 ```
 
 The extension reads Reddit's `removed_by_category` field from the public `.json` endpoint — the same signal Reddit uses internally. One fetch per post, no third-party APIs, no Pushshift.
 
 ## Install
 
-**[Add to Chrome](https://chrome.google.com/webstore/detail/TODO)** (Chrome Web Store) — free, no sign-up.
-
-Or install manually:
+Install manually:
 
 1. Download the [latest release](https://github.com/LeonTing1010/postghost/releases)
 2. Unzip and go to `chrome://extensions`
@@ -33,22 +30,23 @@ Or install manually:
 ## Features
 
 - Ghost detection on every post you make
-- LIVE / GHOST / DYING status badges on your profile page
+- Status badges on your profile page
 - Inline banner on individual post pages
 - Browser notification when a new post is ghosted
-- Removal cause: spam filter, moderator, AutoMod, karma gate, age gate
+- Removal cause: spam filter, moderator, AutoMod, admin, copyright takedown
 - Works on both new Reddit and old.reddit.com
 - No data collection, no accounts, no tracking
 
-## Why Posts Get Ghosted
+## Removal Causes Detected
 
-| Cause | What happens |
-|---|---|
-| **Spam filter** | Low karma or new account triggers Reddit's automated filter |
-| **AutoMod** | Subreddit-specific rules (certain words, link patterns, etc.) |
-| **Moderator** | A human mod removed your post manually |
-| **Karma gate** | Subreddit requires minimum karma you don't have |
-| **Age gate** | Subreddit requires minimum account age |
+| Cause | `removed_by_category` | What happened |
+|---|---|---|
+| **Spam filter** | `reddit` | Reddit's automated filter flagged your post |
+| **Moderator** | `moderator` | A subreddit mod removed your post |
+| **AutoMod** | `automod_filtered` | AutoMod rules filtered your post |
+| **Admin** | `deleted` | A Reddit admin removed your post |
+| **Copyright** | `copyright_takedown` | Removed due to a copyright claim |
+| **Content policy** | `content_takedown` | Removed for content policy violation |
 
 ## How is this different from Reveddit?
 
@@ -68,7 +66,7 @@ Or install manually:
 - Only reads your own posts via Reddit's public `.json` endpoint
 - Open source — read every line of code right here
 
-Full privacy policy: [postghost/privacy](https://leonting1010.github.io/postghost/privacy.html)
+Full privacy policy: [Privacy Policy](https://leonting1010.github.io/postghost/privacy.html)
 
 ## Support
 
@@ -78,4 +76,4 @@ Full privacy policy: [postghost/privacy](https://leonting1010.github.io/postghos
 
 ## License
 
-MIT
+[MIT](LICENSE)
