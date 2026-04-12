@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Is My Post Removed? for Reddit</title>
+<meta name="description" content="Privacy Policy for the Is My Post Removed? for Reddit Chrome extension. No data collection. Everything runs locally.">
+<link rel="canonical" href="https://LeonTing1010.github.io/postghost/privacy.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #0c0a1a; color: #e0e0e0; line-height: 1.7; }
+.container { max-width: 720px; margin: 0 auto; padding: 60px 24px; }
+h1 { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+h2 { font-size: 1.25rem; font-weight: 600; color: #fff; margin-top: 36px; margin-bottom: 12px; }
+p, li { font-size: 0.95rem; color: #b0b0c0; margin-bottom: 12px; }
+ul { padding-left: 20px; }
+li { margin-bottom: 6px; }
+a { color: #a78bfa; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.date { font-size: 0.85rem; color: #666; margin-bottom: 32px; }
+.back { display: inline-block; margin-bottom: 24px; font-size: 0.9rem; }
+code { background: #1a1740; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+strong { color: #e8e6f0; }
+</style>
+</head>
+<body>
+<div class="container">
+<a href="./" class="back">&larr; Back to PostGhost</a>
+<h1>Privacy Policy</h1>
+<p class="date">Effective date: April 12, 2026</p>
+
+<h2>Overview</h2>
+<p><strong>Is My Post Removed? for Reddit</strong> (PostGhost) is a Chrome extension that checks whether your Reddit posts have been silently removed. <strong>It does not collect, transmit, or store any personal data.</strong></p>
+
+<h2>What the Extension Does</h2>
+<p>When you view your own Reddit posts, the extension makes a single <code>fetch()</code> request to Reddit's public <code>.json</code> endpoint (e.g., <code>reddit.com/r/sub/comments/id/.json</code>) using your existing Reddit session cookies. It reads the <code>removed_by_category</code> field from Reddit's response to determine if your post is visible or has been removed.</p>
+<p>This is the same data your browser already has access to — the extension simply reads and displays it.</p>
+
+<h2>Data Collection</h2>
+<p>PostGhost collects <strong>no user data</strong>. Specifically:</p>
+<ul>
+  <li><strong>No analytics or telemetry.</strong> The extension does not phone home.</li>
+  <li><strong>No personal information.</strong> No names, emails, or identifiers are collected.</li>
+  <li><strong>No browsing history.</strong> The extension does not track which sites you visit.</li>
+  <li><strong>No data leaves your browser.</strong> All processing happens locally. No external servers are contacted (other than Reddit itself, which your browser is already connected to).</li>
+  <li><strong>No accounts required.</strong> The free tier requires no sign-up. Your Reddit session is used solely to check your own posts.</li>
+</ul>
+
+<h2>Permissions Explained</h2>
+<p>The extension requests minimal permissions:</p>
+<ul>
+  <li><strong>Host permission (reddit.com, old.reddit.com)</strong> — Read your post's JSON data from Reddit's public endpoint to check removal status.</li>
+  <li><strong>notifications</strong> — Show a browser notification when a newly submitted post is detected as removed.</li>
+  <li><strong>storage</strong> — Store your post check history locally in the browser (never synced or transmitted).</li>
+</ul>
+
+<h2>Cookies</h2>
+<p>The extension uses your existing Reddit session cookies (via <code>credentials: 'include'</code>) to read your own post data. This is required because Reddit returns <code>403 Forbidden</code> for anonymous requests to post JSON. Your cookies are never read, extracted, stored, or transmitted by the extension — they are only included in the standard browser fetch to Reddit.</p>
+
+<h2>Pro Features</h2>
+<p>Pro features ($9/month) require a license key. The only external communication for Pro is a license validation check. No post content or personal data is included in this check.</p>
+
+<h2>Third-Party Services</h2>
+<p>PostGhost does not integrate with any third-party analytics, advertising, or tracking services. The only network requests are to Reddit's own endpoints.</p>
+
+<h2>Data Storage</h2>
+<p>Post check results (post ID, status, timestamp) are stored locally in Chrome's <code>storage.local</code> API. This data:</p>
+<ul>
+  <li>Never leaves your browser</li>
+  <li>Is not synced across devices</li>
+  <li>Can be cleared by uninstalling the extension or clearing extension data</li>
+</ul>
+
+<h2>Open Source</h2>
+<p>PostGhost is open source. You can audit the complete source code at <a href="https://github.com/LeonTing1010/postghost">github.com/LeonTing1010/postghost</a>.</p>
+
+<h2>Children's Privacy</h2>
+<p>This extension is not directed at children under 13. It requires an existing Reddit account, which itself requires users to be at least 13 years old.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, the update will be posted here with a new effective date. Material changes will be noted in the Chrome Web Store listing.</p>
+
+<h2>Contact</h2>
+<p>For questions about this privacy policy, open an issue at <a href="https://github.com/LeonTing1010/postghost/issues">github.com/LeonTing1010/postghost/issues</a> or email <a href="mailto:privacy@taprun.dev">privacy@taprun.dev</a>.</p>
+</div>
+</body>
+</html>

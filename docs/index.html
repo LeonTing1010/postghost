@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Is My Post Removed? for Reddit — See what Reddit hides</title>
+<meta name="description" content="Reddit silently removes your posts. You can see them, but nobody else can. This free Chrome extension checks in seconds and tells you WHY — so you can fix it.">
+<meta property="og:title" content="Is My Post Removed? for Reddit">
+<meta property="og:description" content="Reddit silently removes your posts. This free Chrome extension detects ghost posts in seconds and tells you WHY.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://LeonTing1010.github.io/postghost/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Is My Post Removed? for Reddit">
+<meta name="twitter:description" content="Reddit silently removes your posts. This free Chrome extension detects ghost posts in seconds and tells you WHY.">
+<meta name="keywords" content="reddit post removed, reddit ghost post, reddit shadowban, reddit post checker, reddit post visibility, is my reddit post visible, reddit removed by spam filter, reddit automod, reveddit alternative">
+<meta name="author" content="LeonTing1010">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://LeonTing1010.github.io/postghost/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Is My Post Removed? for Reddit",
+  "description": "Chrome extension that detects when Reddit silently removes your posts. Shows removal cause and how to fix it.",
+  "url": "https://LeonTing1010.github.io/postghost/",
+  "applicationCategory": "BrowserApplication",
+  "operatingSystem": "Chrome",
+  "offers": [
+    {"@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free — ghost detection, removal cause, status badges on every post."},
+    {"@type": "Offer", "price": "9", "priceCurrency": "USD", "description": "Pro — fix suggestions, pre-post check, ghost rate history, batch check."}
+  ],
+  "author": {
+    "@type": "Person",
+    "name": "LeonTing1010",
+    "url": "https://github.com/LeonTing1010"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "How do I know if my Reddit post was removed?", "acceptedAnswer": {"@type": "Answer", "text": "Install 'Is My Post Removed? for Reddit' — it automatically checks every post you make and shows a green (live) or red (ghost) badge. Reddit doesn't tell you when your post is removed, but this extension reads Reddit's own internal signals to detect it."}},
+    {"@type": "Question", "name": "Why was my Reddit post removed?", "acceptedAnswer": {"@type": "Answer", "text": "Common reasons: spam filter (low karma), AutoMod rules, moderator removal, or account age restrictions. This extension tells you the exact cause using Reddit's own removed_by_category field."}},
+    {"@type": "Question", "name": "What is a ghost post on Reddit?", "acceptedAnswer": {"@type": "Answer", "text": "A ghost post is a post that Reddit silently removes. You can still see it yourself, but it's invisible to everyone else — it won't appear in any feed, search, or subreddit listing. You get zero engagement because nobody can see it."}},
+    {"@type": "Question", "name": "Is this better than Reveddit?", "acceptedAnswer": {"@type": "Answer", "text": "Reveddit Real-Time relies on the Pushshift API, which is being deprecated. This extension reads Reddit's native .json endpoint — more reliable, no rate limits, and it tells you WHY your post was removed, not just that it was."}},
+    {"@type": "Question", "name": "Does this extension collect my data?", "acceptedAnswer": {"@type": "Answer", "text": "No. Everything runs locally in your browser. No data is sent anywhere. No accounts, no sign-up, no analytics. The extension only reads your own posts via Reddit's public .json endpoint."}}
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0c0a1a;
+  --bg-surface: #12102a;
+  --bg-card: #1a1740;
+  --text: #e8e6f0;
+  --text-muted: #9896a8;
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --accent: #a78bfa;
+  --accent-dim: #7c3aed;
+  --radius: 12px;
+}
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: 'JetBrains Mono', monospace; background: var(--bg-card); padding: 2px 7px; border-radius: 6px; font-size: 0.88em; }
+
+/* Nav */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; backdrop-filter: blur(16px); background: rgba(12,10,26,0.85); border-bottom: 1px solid rgba(255,255,255,0.06); }
+nav .inner { max-width: 960px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+nav .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+nav .links { display: flex; gap: 24px; font-size: 0.9rem; }
+nav .links a { color: var(--text-muted); }
+nav .links a:hover { color: #fff; text-decoration: none; }
+
+/* Hero */
+.hero { max-width: 720px; margin: 0 auto; padding: 140px 24px 80px; text-align: center; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+.hero h1 .ghost { color: var(--red); }
+.hero .sub { font-size: 1.15rem; color: var(--text-muted); max-width: 540px; margin: 0 auto 36px; }
+.cta-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: transform 0.15s, box-shadow 0.15s; }
+.btn:hover { text-decoration: none; transform: translateY(-2px); }
+.btn-primary { background: var(--accent-dim); color: #fff; box-shadow: 0 4px 24px rgba(124,58,237,0.35); }
+.btn-primary:hover { box-shadow: 0 6px 32px rgba(124,58,237,0.5); }
+.btn-ghost { border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); }
+.btn-ghost:hover { border-color: rgba(255,255,255,0.25); color: #fff; }
+
+/* Demo */
+.demo { max-width: 640px; margin: 0 auto 80px; padding: 0 24px; }
+.demo-card { background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 28px 28px 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; line-height: 1.8; }
+.demo-card .line { display: flex; gap: 12px; align-items: baseline; }
+.demo-card .badge { display: inline-block; min-width: 70px; font-weight: 600; }
+.badge-live { color: var(--green); }
+.badge-ghost { color: var(--red); }
+.badge-dying { color: var(--yellow); }
+.demo-card .title { color: var(--text-muted); }
+.demo-card .meta { color: #555; font-size: 0.8em; margin-left: 82px; }
+.demo-card .cause { color: var(--red); font-size: 0.82em; margin-left: 82px; opacity: 0.8; }
+
+/* Sections */
+section { max-width: 800px; margin: 0 auto; padding: 60px 24px; }
+section h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 32px; text-align: center; }
+
+/* How it works */
+.steps { display: grid; gap: 20px; }
+.step { display: flex; gap: 20px; align-items: flex-start; background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius); padding: 24px; }
+.step-num { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-dim); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+.step h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.step p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* Why */
+.why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.why-card { background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius); padding: 24px; }
+.why-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+.why-card p { font-size: 0.88rem; color: var(--text-muted); }
+
+/* Comparison */
+.compare { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+th { color: var(--text-muted); font-weight: 500; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td:first-child { color: var(--text-muted); }
+
+/* Pricing */
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 640px; margin: 0 auto; }
+.plan { background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 32px 28px; }
+.plan.featured { border-color: var(--accent-dim); box-shadow: 0 0 40px rgba(124,58,237,0.15); }
+.plan h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.plan .price { font-size: 2rem; font-weight: 800; margin-bottom: 16px; }
+.plan .price span { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+.plan ul { list-style: none; }
+.plan li { font-size: 0.9rem; color: var(--text-muted); padding: 5px 0; }
+.plan li::before { content: '\2713'; color: var(--green); margin-right: 8px; font-weight: 700; }
+
+/* Footer */
+footer { max-width: 800px; margin: 0 auto; padding: 40px 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
+footer .links { display: flex; gap: 20px; }
+
+/* Quote */
+.quote { max-width: 560px; margin: 0 auto; padding: 60px 24px; text-align: center; }
+.quote blockquote { font-size: 1.05rem; font-style: italic; color: var(--text-muted); line-height: 1.7; margin-bottom: 12px; }
+.quote cite { font-size: 0.85rem; color: #555; font-style: normal; }
+
+@media (max-width: 600px) {
+  nav .links { gap: 14px; font-size: 0.82rem; }
+  .hero { padding-top: 110px; }
+  .step { flex-direction: column; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <div class="brand">👻 PostGhost</div>
+    <div class="links">
+      <a href="#how-it-works">How It Works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/LeonTing1010/postghost">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Your Reddit post is live.<br>Or is it a <span class="ghost">ghost</span>?</h1>
+  <p class="sub">Reddit silently removes posts without telling you. You see your post, but nobody else can. This extension shows the truth in seconds.</p>
+  <div class="cta-row">
+    <a href="#" class="btn btn-primary">Add to Chrome — Free</a>
+    <a href="https://github.com/LeonTing1010/postghost" class="btn btn-ghost">View Source</a>
+  </div>
+</div>
+
+<div class="demo">
+  <div class="demo-card">
+    <div class="line"><span class="badge badge-live">LIVE</span> <span class="title">My SaaS hit $9k MRR last month...</span></div>
+    <div class="line"><span class="badge badge-ghost">GHOST</span> <span class="title">Got my posts removed 3 times with no...</span></div>
+    <div class="cause">spam_filter — karma 12, need 50</div>
+    <div class="line"><span class="badge badge-dying">DYING</span> <span class="title">Anyone else given up on Reddit marketing?</span></div>
+  </div>
+</div>
+
+<section id="how-it-works">
+  <h2>How It Works</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h3>You post on Reddit</h3>
+        <p>Business as usual. Post in any subreddit.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h3>Extension checks automatically</h3>
+        <p>30 seconds after posting, PostGhost reads Reddit's own internal <code>removed_by_category</code> field — the same signal Reddit uses to hide your post.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h3>You see the truth</h3>
+        <p>A badge appears on your post: <span style="color:var(--green);font-weight:600">LIVE</span>, <span style="color:var(--red);font-weight:600">GHOST</span>, or <span style="color:var(--yellow);font-weight:600">DYING</span> — plus WHY it was removed and how to fix it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Why Posts Get Ghosted</h2>
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>Spam Filter</h3>
+      <p>Low karma or new account. Reddit's automated filter removes your post before anyone sees it.</p>
+    </div>
+    <div class="why-card">
+      <h3>AutoMod Rules</h3>
+      <p>Subreddit-specific rules. Certain words, link patterns, or account requirements trigger auto-removal.</p>
+    </div>
+    <div class="why-card">
+      <h3>Moderator Removal</h3>
+      <p>A human mod removed your post. Sometimes justified, sometimes not — either way, Reddit doesn't tell you.</p>
+    </div>
+    <div class="why-card">
+      <h3>Karma / Age Gate</h3>
+      <p>Many subreddits require minimum karma or account age. Your post is removed silently if you don't meet the threshold.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>PostGhost vs. The Alternatives</h2>
+  <div class="compare">
+    <table>
+      <thead>
+        <tr><th></th><th>PostGhost</th><th>Reveddit Real-Time</th><th>Manual Check</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Detection method</td><td>Reddit native .json</td><td>Pushshift API (dying)</td><td>Log out & check</td></tr>
+        <tr><td>False positives</td><td>Low</td><td>Known issue</td><td>None (but slow)</td></tr>
+        <tr><td>Rate limiting</td><td>None</td><td>Users report 429</td><td>N/A</td></tr>
+        <tr><td>Tells you WHY</td><td style="color:var(--green)">Yes</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td></tr>
+        <tr><td>Fix suggestions</td><td style="color:var(--green)">Pro</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td></tr>
+        <tr><td>Pre-post check</td><td style="color:var(--green)">Pro</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td></tr>
+        <tr><td>Price</td><td>Free + $9/mo</td><td>Free</td><td>Free (+ your time)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="quote">
+  <blockquote>"Spent 6-8 hours writing helpful posts. Every single one got removed within 15-30 minutes. No mail, no explanation. Just gone."</blockquote>
+  <cite>— r/SaaS user</cite>
+</div>
+
+<section id="pricing">
+  <h2>Pricing</h2>
+  <div class="pricing-grid">
+    <div class="plan">
+      <h3>Free</h3>
+      <div class="price">$0 <span>forever</span></div>
+      <ul>
+        <li>Ghost detection on every post</li>
+        <li>LIVE / GHOST / DYING badges</li>
+        <li>Removal cause (spam, mod, automod)</li>
+        <li>Works on new &amp; old Reddit</li>
+      </ul>
+    </div>
+    <div class="plan featured">
+      <h3>Pro</h3>
+      <div class="price">$9 <span>/month</span></div>
+      <ul>
+        <li>Everything in Free</li>
+        <li>Fix suggestions with action steps</li>
+        <li>Pre-post check before you submit</li>
+        <li>Ghost rate by subreddit</li>
+        <li>Batch check all recent posts</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>&copy; 2026 PostGhost</span>
+  <div class="links">
+    <a href="privacy.html">Privacy</a>
+    <a href="support.html">Support</a>
+    <a href="https://github.com/LeonTing1010/postghost">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>

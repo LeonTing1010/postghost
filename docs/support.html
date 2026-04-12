@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support — Is My Post Removed? for Reddit</title>
+<meta name="description" content="Get help with the Is My Post Removed? for Reddit Chrome extension. FAQ, troubleshooting, and contact information.">
+<link rel="canonical" href="https://LeonTing1010.github.io/postghost/support.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #0c0a1a; color: #e0e0e0; line-height: 1.7; }
+.container { max-width: 720px; margin: 0 auto; padding: 60px 24px; }
+h1 { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+h2 { font-size: 1.25rem; font-weight: 600; color: #fff; margin-top: 36px; margin-bottom: 12px; }
+h3 { font-size: 1.05rem; font-weight: 600; color: #fff; margin-top: 24px; margin-bottom: 8px; }
+p, li { font-size: 0.95rem; color: #b0b0c0; margin-bottom: 12px; }
+ul, ol { padding-left: 20px; }
+li { margin-bottom: 6px; }
+a { color: #a78bfa; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 24px; font-size: 0.9rem; }
+.sub { font-size: 1rem; color: #888; margin-bottom: 40px; }
+code { background: #1a1740; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+strong { color: #e8e6f0; }
+
+.faq-item { background: #12102a; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; }
+.faq-item summary { font-weight: 600; color: #fff; cursor: pointer; font-size: 0.95rem; }
+.faq-item summary:hover { color: #a78bfa; }
+.faq-item p { margin-top: 12px; margin-bottom: 0; }
+
+.contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+.contact-card { background: #12102a; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; text-align: center; }
+.contact-card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+.contact-card h3 { margin-top: 0; font-size: 0.95rem; }
+.contact-card p { font-size: 0.85rem; margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<a href="./" class="back">&larr; Back to PostGhost</a>
+<h1>Support</h1>
+<p class="sub">Help with Is My Post Removed? for Reddit</p>
+
+<h2>Frequently Asked Questions</h2>
+
+<details class="faq-item">
+  <summary>The extension isn't showing any badges on my posts</summary>
+  <p>Make sure you're viewing your <strong>own</strong> posts while logged in to Reddit. PostGhost only checks posts authored by the currently logged-in user. Try refreshing the page — badges appear after a brief check.</p>
+</details>
+
+<details class="faq-item">
+  <summary>I see a badge but I think it's wrong</summary>
+  <p>PostGhost reads Reddit's own <code>removed_by_category</code> field. If you believe a result is incorrect, try opening your post in an incognito/private window (without logging in). If you can't see the post there, it's been removed — PostGhost is correct. If you can see it, please <a href="https://github.com/LeonTing1010/postghost/issues">report the false positive</a>.</p>
+</details>
+
+<details class="faq-item">
+  <summary>Does this work on new Reddit and old Reddit?</summary>
+  <p>Yes. PostGhost works on both <code>reddit.com</code> (new design) and <code>old.reddit.com</code>. The underlying <code>.json</code> endpoint is the same.</p>
+</details>
+
+<details class="faq-item">
+  <summary>Will Reddit ban me for using this?</summary>
+  <p>No. PostGhost makes a single standard HTTP request to Reddit's public <code>.json</code> endpoint per post — the same request your browser makes when loading a page. It does not scrape, does not use unofficial APIs, and does not violate Reddit's terms of service.</p>
+</details>
+
+<details class="faq-item">
+  <summary>What does DYING status mean?</summary>
+  <p>DYING means your post is technically still live but losing visibility — low upvote ratio, declining engagement, or approaching a subreddit's removal threshold. It may be removed soon or may have already been soft-filtered from feeds.</p>
+</details>
+
+<details class="faq-item">
+  <summary>How do I cancel my Pro subscription?</summary>
+  <p>Pro subscriptions are managed through Stripe. You can cancel anytime from the billing portal link in the extension's Pro settings. After canceling, Pro features remain active until the end of your billing period. Free features continue working forever.</p>
+</details>
+
+<details class="faq-item">
+  <summary>Does PostGhost work on mobile?</summary>
+  <p>No. PostGhost is a Chrome desktop extension. Chrome on Android and iOS does not support extensions. For mobile, you can manually check by opening your post URL in a private/incognito tab.</p>
+</details>
+
+<details class="faq-item">
+  <summary>Can I check other people's posts?</summary>
+  <p>No. Reddit only exposes the <code>removed_by_category</code> field to the post author. PostGhost can only check posts you authored while you're logged in.</p>
+</details>
+
+<h2>Troubleshooting</h2>
+
+<h3>Extension stopped working after a Reddit update</h3>
+<p>Reddit occasionally changes their page structure. PostGhost reads the <code>.json</code> endpoint (which is more stable than the HTML), but if something breaks:</p>
+<ol>
+  <li>Check for extension updates in <code>chrome://extensions</code></li>
+  <li>Try disabling and re-enabling the extension</li>
+  <li>If the issue persists, <a href="https://github.com/LeonTing1010/postghost/issues">report it on GitHub</a></li>
+</ol>
+
+<h3>Badges appear slowly</h3>
+<p>PostGhost waits 30-60 seconds after detecting a new post before checking, because Reddit's filter pipeline takes time. For existing posts on your profile page, badges should appear within 1-2 seconds of page load.</p>
+
+<h2>Contact</h2>
+
+<div class="contact-grid">
+  <div class="contact-card">
+    <div class="icon">🐛</div>
+    <h3>Bug Reports</h3>
+    <p><a href="https://github.com/LeonTing1010/postghost/issues">GitHub Issues</a></p>
+  </div>
+  <div class="contact-card">
+    <div class="icon">💬</div>
+    <h3>Feature Requests</h3>
+    <p><a href="https://github.com/LeonTing1010/postghost/discussions">GitHub Discussions</a></p>
+  </div>
+  <div class="contact-card">
+    <div class="icon">📧</div>
+    <h3>Email</h3>
+    <p><a href="mailto:support@taprun.dev">support@taprun.dev</a></p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
