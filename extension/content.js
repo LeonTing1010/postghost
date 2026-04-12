@@ -174,15 +174,16 @@
 
     if (result.status === "live") {
       banner.className = "postghost-banner postghost-banner-live";
-      banner.innerHTML = `<span class="postghost-banner-icon">&#x1F7E2;</span> <strong>LIVE</strong> &mdash; ${result.detail}`;
+      banner.innerHTML = `<span class="postghost-banner-icon">&#x1F7E2;</span> <strong>LIVE</strong> &mdash; `;
+      banner.appendChild(document.createTextNode(result.detail));
     } else if (result.status === "ghost") {
       banner.className = "postghost-banner postghost-banner-ghost";
-      banner.innerHTML =
-        `<span class="postghost-banner-icon">&#x1F534;</span> <strong>GHOST</strong> &mdash; ${result.detail}`;
+      banner.innerHTML = `<span class="postghost-banner-icon">&#x1F534;</span> <strong>GHOST</strong> &mdash; `;
+      banner.appendChild(document.createTextNode(result.detail));
     } else if (result.status === "deleted") {
       banner.className = "postghost-banner postghost-banner-deleted";
-      banner.innerHTML =
-        `<span class="postghost-banner-icon">&#x26AA;</span> <strong>DELETED</strong> &mdash; ${result.detail}`;
+      banner.innerHTML = `<span class="postghost-banner-icon">&#x26AA;</span> <strong>DELETED</strong> &mdash; `;
+      banner.appendChild(document.createTextNode(result.detail));
     }
 
     return banner;

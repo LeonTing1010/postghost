@@ -27,8 +27,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Chrome",
   "offers": [
-    {"@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free — ghost detection, removal cause, status badges on every post."},
-    {"@type": "Offer", "price": "9", "priceCurrency": "USD", "description": "Pro — fix suggestions, pre-post check, ghost rate history, batch check."}
+    {"@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free — ghost detection, removal cause, status badges on every post."}
   ],
   "author": {
     "@type": "Person",
@@ -130,13 +129,11 @@ th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255
 th { color: var(--text-muted); font-weight: 500; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }
 td:first-child { color: var(--text-muted); }
 
-/* Pricing */
-.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 640px; margin: 0 auto; }
+/* Features */
+.pricing-grid { max-width: 400px; margin: 0 auto; }
 .plan { background: var(--bg-surface); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 32px 28px; }
 .plan.featured { border-color: var(--accent-dim); box-shadow: 0 0 40px rgba(124,58,237,0.15); }
-.plan h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
-.plan .price { font-size: 2rem; font-weight: 800; margin-bottom: 16px; }
-.plan .price span { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+.plan h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; }
 .plan ul { list-style: none; }
 .plan li { font-size: 0.9rem; color: var(--text-muted); padding: 5px 0; }
 .plan li::before { content: '\2713'; color: var(--green); margin-right: 8px; font-weight: 700; }
@@ -164,7 +161,6 @@ footer .links { display: flex; gap: 20px; }
     <div class="brand">👻 PostGhost</div>
     <div class="links">
       <a href="#how-it-works">How It Works</a>
-      <a href="#pricing">Pricing</a>
       <a href="https://github.com/LeonTing1010/postghost">GitHub</a>
     </div>
   </div>
@@ -249,9 +245,7 @@ footer .links { display: flex; gap: 20px; }
         <tr><td>False positives</td><td>Low</td><td>Known issue</td><td>None (but slow)</td></tr>
         <tr><td>Rate limiting</td><td>None</td><td>Users report 429</td><td>N/A</td></tr>
         <tr><td>Tells you WHY</td><td style="color:var(--green)">Yes</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td></tr>
-        <tr><td>Fix suggestions</td><td style="color:var(--green)">Pro</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td></tr>
-        <tr><td>Pre-post check</td><td style="color:var(--green)">Pro</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td></tr>
-        <tr><td>Price</td><td>Free + $9/mo</td><td>Free</td><td>Free (+ your time)</td></tr>
+        <tr><td>Price</td><td>Free</td><td>Free</td><td>Free (+ your time)</td></tr>
       </tbody>
     </table>
   </div>
@@ -262,28 +256,18 @@ footer .links { display: flex; gap: 20px; }
   <cite>— r/SaaS user</cite>
 </div>
 
-<section id="pricing">
-  <h2>Pricing</h2>
+<section id="features">
+  <h2>100% Free</h2>
   <div class="pricing-grid">
-    <div class="plan">
-      <h3>Free</h3>
-      <div class="price">$0 <span>forever</span></div>
+    <div class="plan featured">
+      <h3>Everything. No catch.</h3>
       <ul>
         <li>Ghost detection on every post</li>
         <li>LIVE / GHOST / DYING badges</li>
         <li>Removal cause (spam, mod, automod)</li>
         <li>Works on new &amp; old Reddit</li>
-      </ul>
-    </div>
-    <div class="plan featured">
-      <h3>Pro</h3>
-      <div class="price">$9 <span>/month</span></div>
-      <ul>
-        <li>Everything in Free</li>
-        <li>Fix suggestions with action steps</li>
-        <li>Pre-post check before you submit</li>
-        <li>Ghost rate by subreddit</li>
-        <li>Batch check all recent posts</li>
+        <li>No accounts, no sign-up</li>
+        <li>Open source</li>
       </ul>
     </div>
   </div>
