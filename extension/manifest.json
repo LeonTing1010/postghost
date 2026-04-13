@@ -19,6 +19,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_icon": {
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "default_title": "PostGhost — See what Reddit hides"
+  },
   "icons": {
     "48": "icon48.png",
     "128": "icon128.png"

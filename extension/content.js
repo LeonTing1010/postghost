@@ -20,12 +20,59 @@
   const JSON_SUFFIX = ".json?raw_json=1";
   const BADGE_ATTR = "data-postghost";
   const RATE_LIMIT_MS = 2500; // Min 2.5s between Reddit .json fetches to avoid IP ban
+  const CACHE_TTL_MS = 5 * 60 * 1000; // Cache results for 5 minutes
+
+  // ── Cache ───────────────────────────────────────────────────────
+
+  const jsonCache = new Map();
+
+  function cacheGet(url) {
+    const entry = jsonCache.get(url);
+    if (!entry) return undefined;
+    if (Date.now() - entry.ts > CACHE_TTL_MS) { jsonCache.delete(url); return undefined; }
+    return entry.data;
+  }
+
+  function cacheSet(url, data) {
+    jsonCache.set(url, { data, ts: Date.now() });
+  }
+
+  // ── Logged-in Username ──────────────────────────────────────────
+
+  let loggedInUser = null;
+  let loggedInUserPromise = null;
+
+  function getLoggedInUser() {
+    if (loggedInUser) return loggedInUser;
+    // Old Reddit
+    const oldUser = document.querySelector('.user a');
+    if (oldUser && oldUser.href?.includes('/user/')) {
+      const m = oldUser.href.match(/\/user\/([^/?#]+)/);
+      if (m) { loggedInUser = m[1]; return loggedInUser; }
+    }
+    return null;
+  }
+
+  /** Async fallback: fetch /api/me.json (works on new Reddit where DOM selectors fail) */
+  async function ensureLoggedInUser() {
+    if (loggedInUser) return loggedInUser;
+    getLoggedInUser();
+    if (loggedInUser) return loggedInUser;
+    if (!loggedInUserPromise) {
+      loggedInUserPromise = fetch("/api/me.json", { credentials: "include" })
+        .then((r) => r.json())
+        .then((d) => { loggedInUser = d?.data?.name || d?.name || null; return loggedInUser; })
+        .catch(() => null);
+    }
+    return loggedInUserPromise;
+  }
 
   // ── Rate Limiter ────────────────────────────────────────────────
 
   let lastFetchTime = 0;
   const fetchQueue = [];
   let fetchRunning = false;
+  let backoffMs = RATE_LIMIT_MS;
 
   /**
    * Rate-limited fetch queue. Ensures at least RATE_LIMIT_MS between
@@ -38,22 +85,34 @@
 
     while (fetchQueue.length > 0) {
       const { url, resolve } = fetchQueue.shift();
+
+      // Check cache first
+      const cached = cacheGet(url);
+      if (cached !== undefined) { resolve(cached); continue; }
+
       const now = Date.now();
-      const wait = Math.max(0, RATE_LIMIT_MS - (now - lastFetchTime));
+      const wait = Math.max(0, backoffMs - (now - lastFetchTime));
       if (wait > 0) await new Promise((r) => setTimeout(r, wait));
 
       lastFetchTime = Date.now();
       try {
         const resp = await fetch(url, { credentials: "include" });
         if (resp.status === 429) {
-          // Back off hard on 429 — double the delay for remaining queue
-          console.warn("[PostGhost] Reddit 429 — backing off");
-          await new Promise((r) => setTimeout(r, 10_000));
+          // Exponential backoff: double delay, drain remaining queue with null
+          backoffMs = Math.min(backoffMs * 2, 60_000);
+          console.warn(`[PostGhost] Reddit 429 — backoff now ${backoffMs}ms, draining ${fetchQueue.length} queued`);
+          await new Promise((r) => setTimeout(r, backoffMs));
           resolve(null);
+          // Drain remaining queue to avoid hammering
+          while (fetchQueue.length > 0) fetchQueue.shift().resolve(null);
           continue;
         }
+        // Reset backoff on success
+        backoffMs = RATE_LIMIT_MS;
         if (!resp.ok) { resolve(null); continue; }
-        resolve(await resp.json());
+        const data = await resp.json();
+        cacheSet(url, data);
+        resolve(data);
       } catch {
         resolve(null);
       }
@@ -166,25 +225,62 @@
   }
 
   /**
+   * Actionable tips per removal cause.
+   */
+  const causeTips = {
+    spam_filter: "Tip: New accounts and link-heavy posts trigger Reddit's spam filter most often. Build karma with comments first, then try reposting without links.",
+    mod_removed: "Tip: Check this subreddit's rules — your post may have violated a specific rule. You can message the mods to ask why.",
+    automod: "Tip: AutoMod rules vary by subreddit. Common triggers: low karma, new account, banned keywords. Try a different subreddit or rephrase.",
+    admin_removed: "This is a site-wide action by Reddit admins. Review Reddit's content policy to avoid future removals.",
+    copyright: "A copyright holder filed a takedown. If you believe this is wrong, you can file a counter-notice.",
+    content_takedown: "This post violated Reddit's content policy. Review the policy to understand which rule was triggered.",
+    removed: "Tip: The post was removed but the specific reason is unclear. Try messaging the subreddit mods.",
+    content_removed: "The post content was stripped. This usually means a mod or admin action.",
+    not_indexable: "Your post is hidden from feeds and search. This can happen silently — only you can see it.",
+  };
+
+  /**
    * Create an inline banner for single post view.
    */
   function createBanner(result) {
     const banner = document.createElement("div");
     banner.setAttribute(BADGE_ATTR, "banner");
 
-    if (result.status === "live") {
-      banner.className = "postghost-banner postghost-banner-live";
-      banner.innerHTML = `<span class="postghost-banner-icon">&#x1F7E2;</span> <strong>LIVE</strong> &mdash; `;
-      banner.appendChild(document.createTextNode(result.detail));
-    } else if (result.status === "ghost") {
-      banner.className = "postghost-banner postghost-banner-ghost";
-      banner.innerHTML = `<span class="postghost-banner-icon">&#x1F534;</span> <strong>GHOST</strong> &mdash; `;
-      banner.appendChild(document.createTextNode(result.detail));
-    } else if (result.status === "deleted") {
-      banner.className = "postghost-banner postghost-banner-deleted";
-      banner.innerHTML = `<span class="postghost-banner-icon">&#x26AA;</span> <strong>DELETED</strong> &mdash; `;
-      banner.appendChild(document.createTextNode(result.detail));
+    const icons = { live: "\u{1F7E2}", ghost: "\u{1F47B}", deleted: "\u26AA" };
+    const titles = { live: "LIVE", ghost: "GHOST", deleted: "DELETED" };
+    const classes = { live: "postghost-banner-live", ghost: "postghost-banner-ghost", deleted: "postghost-banner-deleted" };
+
+    const status = result.status in icons ? result.status : "deleted";
+    banner.className = `postghost-banner ${classes[status]}`;
+
+    const icon = document.createElement("span");
+    icon.className = "postghost-banner-icon";
+    icon.textContent = icons[status];
+
+    const body = document.createElement("div");
+    body.className = "postghost-banner-body";
+
+    const title = document.createElement("div");
+    title.className = "postghost-banner-title";
+    title.textContent = titles[status];
+
+    const detail = document.createElement("div");
+    detail.className = "postghost-banner-detail";
+    detail.textContent = result.detail;
+
+    body.appendChild(title);
+    body.appendChild(detail);
+
+    // Add actionable tip for ghost posts
+    if (result.status === "ghost" && result.cause && causeTips[result.cause]) {
+      const tip = document.createElement("div");
+      tip.className = "postghost-banner-tip";
+      tip.textContent = causeTips[result.cause];
+      body.appendChild(tip);
     }
+
+    banner.appendChild(icon);
+    banner.appendChild(body);
 
     return banner;
   }
@@ -197,14 +293,10 @@
     return /reddit\.com\/r\/\w+\/comments\/\w+/i.test(url);
   }
 
-  function isOwnPostPage() {
-    // On new Reddit, check if there's a post action menu (edit/delete) — indicates authorship
-    // On old Reddit, check for .buttons .edit-usertext
-    return (
-      !!document.querySelector('[slot="post-overflow-menu"]') ||
-      !!document.querySelector(".buttons .edit-usertext") ||
-      !!document.querySelector('button[aria-label="Edit post"]')
-    );
+  async function isOwnPost(post) {
+    if (!post?.author) return false;
+    const me = await ensureLoggedInUser();
+    return me && post.author.toLowerCase() === me.toLowerCase();
   }
 
   async function checkCurrentPost() {
@@ -217,19 +309,19 @@
 
     const result = diagnose(post);
 
-    // Inject banner on post page if authored by user
-    if (isOwnPostPage()) {
+    // Inject banner on post page if authored by user (compare via JSON author)
+    if (await isOwnPost(post)) {
       injectPostBanner(result);
-    }
 
-    // Send notification for ghost posts
-    if (result.status === "ghost") {
-      const sub = post.subreddit || "unknown";
-      chrome.runtime.sendMessage({
-        type: "postghost_notify",
-        title: `Your post in r/${sub} was ghosted`,
-        message: result.detail,
-      });
+      // Send notification for ghost posts
+      if (result.status === "ghost") {
+        const sub = post.subreddit || "unknown";
+        chrome.runtime.sendMessage({
+          type: "postghost_notify",
+          title: `Your post in r/${sub} was ghosted`,
+          message: result.detail,
+        });
+      }
     }
   }
 
@@ -254,27 +346,39 @@
   }
 
   // Watch for URL changes (SPA navigation on new Reddit)
+  // Uses history API interception instead of MutationObserver for performance —
+  // new Reddit's React SPA fires thousands of DOM mutations per second.
   function watchNavigation() {
-    const observer = new MutationObserver(() => {
-      if (location.href !== lastUrl) {
-        const prevUrl = lastUrl;
-        lastUrl = location.href;
+    function onNavChange() {
+      if (location.href === lastUrl) return;
+      const prevUrl = lastUrl;
+      lastUrl = location.href;
 
-        // If navigated TO a post page (likely just posted)
-        if (isPostUrl(lastUrl) && !isPostUrl(prevUrl)) {
-          setTimeout(checkCurrentPost, CHECK_DELAY_MS);
-        }
-        // If already on a post page (direct navigation)
-        else if (isPostUrl(lastUrl)) {
-          checkCurrentPost();
-        }
-        // If on profile page
-        else if (isProfilePostsPage(lastUrl)) {
-          badgeProfilePosts();
-        }
+      // If navigated TO a post page (likely just posted)
+      if (isPostUrl(lastUrl) && !isPostUrl(prevUrl)) {
+        setTimeout(checkCurrentPost, CHECK_DELAY_MS);
       }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+      // If already on a post page (direct navigation)
+      else if (isPostUrl(lastUrl)) {
+        checkCurrentPost();
+      }
+      // If on profile page
+      else if (isProfilePostsPage(lastUrl)) {
+        badgeProfilePosts();
+      }
+    }
+
+    const origPushState = history.pushState;
+    const origReplaceState = history.replaceState;
+    history.pushState = function () {
+      origPushState.apply(this, arguments);
+      onNavChange();
+    };
+    history.replaceState = function () {
+      origReplaceState.apply(this, arguments);
+      onNavChange();
+    };
+    window.addEventListener("popstate", onNavChange);
   }
 
   // ── Job 2: Badge all posts on profile page ─────────────────────
@@ -293,8 +397,8 @@
     if (!match) return;
     const username = match[1];
 
-    // Fetch user's submitted posts
-    const json = await redditJson(`https://old.reddit.com/user/${username}/submitted`);
+    // Fetch user's submitted posts (use same origin to avoid CORS issues)
+    const json = await redditJson(`${location.origin}/user/${username}/submitted`);
     if (!json) return;
 
     const posts = extractPost(json);
@@ -308,6 +412,13 @@
       }
     }
 
+    // Report ghost count to background for icon badge
+    let ghostCount = 0;
+    for (const result of diagMap.values()) {
+      if (result.status === "ghost") ghostCount++;
+    }
+    chrome.runtime.sendMessage({ type: "postghost_badge_update", ghostCount });
+
     // Find post elements in the page and badge them
     requestAnimationFrame(() => {
       badgeNewReddit(diagMap);
@@ -316,21 +427,46 @@
   }
 
   function badgeNewReddit(diagMap) {
-    // New Reddit: posts are <a> or <article> elements with post links
-    const links = document.querySelectorAll('a[href*="/comments/"]');
-    for (const link of links) {
-      // Already badged?
-      if (link.querySelector(`[${BADGE_ATTR}]`)) continue;
+    // New Reddit: posts are <shreddit-post> elements with post-id or permalink attributes
+    const shredditPosts = document.querySelectorAll("shreddit-post");
+    for (const post of shredditPosts) {
+      if (post.querySelector(`[${BADGE_ATTR}]`)) continue;
 
-      // Extract post ID from href
-      const m = link.href.match(/\/comments\/(\w+)/);
+      // Extract post ID from permalink attribute or inner link
+      const permalink = post.getAttribute("permalink") || "";
+      const m = permalink.match(/\/comments\/(\w+)/) ||
+        post.querySelector('a[href*="/comments/"]')?.href?.match(/\/comments\/(\w+)/);
       if (!m) continue;
 
       const result = diagMap.get(m[1]);
       if (!result) continue;
 
       const badge = createBadge(result);
-      link.insertBefore(badge, link.firstChild);
+      // Insert badge into the title link
+      const titleLink = post.querySelector('a[slot="title"], a.block.text-neutral-content-strong, a[data-testid="post-title"]');
+      if (titleLink) {
+        titleLink.style.display = "inline-flex";
+        titleLink.style.alignItems = "center";
+        titleLink.style.gap = "6px";
+        titleLink.insertBefore(badge, titleLink.firstChild);
+      } else {
+        // Fallback: prepend to shreddit-post itself
+        post.insertBefore(badge, post.firstChild);
+      }
+    }
+
+    // Fallback for non-shreddit layouts
+    if (shredditPosts.length === 0) {
+      const links = document.querySelectorAll('a[href*="/comments/"]');
+      for (const link of links) {
+        if (link.querySelector(`[${BADGE_ATTR}]`)) continue;
+        const m = link.href.match(/\/comments\/(\w+)/);
+        if (!m) continue;
+        const result = diagMap.get(m[1]);
+        if (!result) continue;
+        const badge = createBadge(result);
+        link.insertBefore(badge, link.firstChild);
+      }
     }
   }
 
@@ -358,6 +494,9 @@
   // ── Init ────────────────────────────────────────────────────────
 
   function init() {
+    // Prefetch logged-in username (async, non-blocking)
+    ensureLoggedInUser();
+
     // If on a post page, check it
     if (isPostUrl(location.href)) {
       checkCurrentPost();
