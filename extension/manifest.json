@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Is My Post Removed? for Reddit",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "See what Reddit hides. Instant status on every post you make.",
   "permissions": ["notifications"],
   "host_permissions": ["*://*.reddit.com/*"],
