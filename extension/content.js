@@ -412,12 +412,18 @@
       }
     }
 
-    // Report ghost count to background for icon badge
-    let ghostCount = 0;
+    // Report counts to background for icon badge + popup
+    let ghostCount = 0, liveCount = 0;
     for (const result of diagMap.values()) {
       if (result.status === "ghost") ghostCount++;
+      else if (result.status === "live") liveCount++;
     }
-    chrome.runtime.sendMessage({ type: "postghost_badge_update", ghostCount });
+    chrome.runtime.sendMessage({
+      type: "postghost_badge_update",
+      ghostCount,
+      liveCount,
+      totalCount: diagMap.size,
+    });
 
     // Find post elements in the page and badge them
     requestAnimationFrame(() => {

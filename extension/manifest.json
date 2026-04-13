@@ -24,7 +24,8 @@
       "48": "icon48.png",
       "128": "icon128.png"
     },
-    "default_title": "PostGhost — See what Reddit hides"
+    "default_title": "PostGhost — See what Reddit hides",
+    "default_popup": "popup.html"
   },
   "icons": {
     "48": "icon48.png",
