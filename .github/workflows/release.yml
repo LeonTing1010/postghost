@@ -39,3 +39,15 @@ jobs:
         with:
           files: postghost-ext-${{ steps.version.outputs.version }}.zip
           generate_release_notes: true
+
+      - name: Upload to Chrome Web Store
+        run: |
+          npm install -g chrome-webstore-upload-cli
+          chrome-webstore-upload upload \
+            --source postghost-ext-${{ steps.version.outputs.version }}.zip \
+            --extension-id gcihfanalejjjidbiofcmhcjhckdhigf \
+            --auto-publish
+        env:
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
