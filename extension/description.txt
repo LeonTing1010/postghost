@@ -1,0 +1,31 @@
+Reddit silently removes posts and comments without telling you. Your content still looks normal to you, but nobody else can see it. This extension detects ghost removals instantly.
+
+How it works:
+1. You post or comment on Reddit as usual.
+2. The extension checks automatically (30 seconds after posting).
+3. A badge appears on your post: LIVE or GHOST, plus the reason it was removed.
+
+Removal causes detected:
+- Spam filter: Reddit's automated filter flagged your post.
+- Moderator: A subreddit mod removed your post.
+- AutoMod: AutoMod rules filtered your post.
+- Admin: A Reddit admin removed your post.
+- Copyright takedown: Removed due to a copyright claim.
+- Content policy: Removed for content policy violation.
+
+Where badges appear:
+- Your profile page (posts and comments tabs)
+- Individual post pages (inline banner)
+- Browser notification when a new post is ghosted
+
+How detection works:
+The extension reads Reddit's own "removed_by_category" field from the public .json endpoint, the same signal Reddit uses internally. One fetch per post, no third-party APIs.
+
+Privacy:
+- No data leaves your browser.
+- No accounts, no sign-up required.
+- No analytics, no tracking.
+- Only reads your own posts via Reddit's public .json endpoint.
+- Open source: https://github.com/LeonTing1010/postghost
+
+Works on both new Reddit (reddit.com) and old Reddit (old.reddit.com).

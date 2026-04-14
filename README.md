@@ -1,12 +1,12 @@
 # Is My Post Removed? for Reddit
 
-**See what Reddit hides.** Instant ghost detection for every post you make.
+**See what Reddit hides.** Instant ghost detection for every post and comment you make.
 
-Reddit silently removes posts without telling you. You can still see your own post, but nobody else can — it's a ghost post. This extension reads Reddit's own internal signals and shows you the truth in seconds.
+Reddit silently removes posts and comments without telling you. You can still see your own content, but nobody else can — it's a ghost. This extension reads Reddit's own internal signals and shows you the truth in seconds.
 
 ## How It Works
 
-1. You post on Reddit
+1. You post or comment on Reddit
 2. Extension checks automatically (30 seconds after posting)
 3. A badge appears: **LIVE** or **GHOST** — plus WHY it was removed
 
@@ -14,9 +14,13 @@ Reddit silently removes posts without telling you. You can still see your own po
 LIVE   My SaaS hit $9k MRR last month...
 GHOST  Got my posts removed 3 times with no...
        spam_filter — Reddit's spam filter removed this post
+
+LIVE   Great point about the API approach...
+GHOST  I've been using an open-source project...
+       spam_filter — Reddit's spam filter removed this comment
 ```
 
-The extension reads Reddit's `removed_by_category` field from the public `.json` endpoint — the same signal Reddit uses internally. One fetch per post, no third-party APIs, no Pushshift.
+The extension reads Reddit's `removed_by_category` field from the public `.json` endpoint — the same signal Reddit uses internally. One fetch per item, no third-party APIs, no Pushshift.
 
 ## Install
 
@@ -29,8 +33,8 @@ Install manually:
 
 ## Features
 
-- Ghost detection on every post you make
-- Status badges on your profile page
+- Ghost detection on every post and comment you make
+- Status badges on your profile page (posts and comments tabs)
 - Inline banner on individual post pages
 - Browser notification when a new post is ghosted
 - Removal cause: spam filter, moderator, AutoMod, admin, copyright takedown

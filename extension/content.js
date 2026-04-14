@@ -1,10 +1,11 @@
 /**
  * PostGhost content script — runs on reddit.com
  *
- * Three jobs:
+ * Four jobs:
  * 1. Detect when user posts → check after 30s → notify if ghost
  * 2. On profile/posts page → badge every post 🟢🔴
  * 3. On single post page (authored by user) → show inline banner
+ * 4. On profile/comments page → badge every comment 🟢🔴
  */
 
 (() => {
@@ -197,6 +198,46 @@
   }
 
   /**
+   * Determine ghost status from a comment's data.
+   * Returns { status, cause, detail }
+   */
+  function diagnoseComment(comment) {
+    if (!comment) return { status: "unknown", cause: null, detail: "Could not read comment data" };
+
+    // Deleted by author
+    if (comment.author === "[deleted]") {
+      return { status: "deleted", cause: "deleted_by_author", detail: "You deleted this comment" };
+    }
+
+    // Removed by Reddit/mod/automod — same field as posts
+    const rbc = comment.removed_by_category;
+    if (rbc) {
+      const causeMap = {
+        reddit: { cause: "spam_filter", detail: "Reddit's spam filter removed this comment" },
+        moderator: { cause: "mod_removed", detail: "A moderator removed this comment" },
+        automod_filtered: { cause: "automod", detail: "AutoMod filtered this comment" },
+        deleted: { cause: "admin_removed", detail: "A Reddit admin removed this comment" },
+        author: { cause: "deleted_by_author", detail: "You deleted this comment" },
+        content_takedown: { cause: "content_takedown", detail: "Removed due to content policy" },
+      };
+      const info = causeMap[rbc] || { cause: rbc, detail: `Removed by: ${rbc}` };
+      return { status: "ghost", ...info };
+    }
+
+    // Body replaced with [removed] or [ Removed by Reddit ]
+    if (comment.body === "[removed]" || comment.body === "[ Removed by Reddit ]") {
+      return { status: "ghost", cause: "content_removed", detail: "Comment content was removed by Reddit" };
+    }
+
+    // Collapsed/banned signals
+    if (comment.banned_by) {
+      return { status: "ghost", cause: "banned", detail: `Comment removed by: ${comment.banned_by}` };
+    }
+
+    return { status: "live", cause: null, detail: "This comment is visible to everyone" };
+  }
+
+  /**
    * Create a badge element.
    */
   function createBadge(result) {
@@ -362,9 +403,13 @@
       else if (isPostUrl(lastUrl)) {
         checkCurrentPost();
       }
-      // If on profile page
+      // If on profile posts page
       else if (isProfilePostsPage(lastUrl)) {
         badgeProfilePosts();
+      }
+      // If on profile comments page
+      else if (isProfileCommentsPage(lastUrl)) {
+        badgeProfileComments();
       }
     }
 
@@ -497,6 +542,135 @@
     }
   }
 
+  // ── Job 4: Badge all comments on profile/comments page ─────────
+
+  function isProfileCommentsPage(url) {
+    url = url || location.href;
+    return /reddit\.com\/user\/[^/]+\/comments/i.test(url);
+  }
+
+  async function badgeProfileComments() {
+    if (!isProfileCommentsPage()) return;
+
+    const match = location.href.match(/reddit\.com\/user\/([^/?#]+)/i);
+    if (!match) return;
+    const username = match[1];
+
+    const json = await redditJson(`${location.origin}/user/${username}/comments`);
+    if (!json) return;
+
+    // Comments listing: { data: { children: [{ kind: "t1", data: {...} }] } }
+    const children = json?.data?.children;
+    if (!Array.isArray(children)) return;
+
+    const diagMap = new Map();
+    for (const child of children) {
+      if (child.kind === "t1" && child.data?.id) {
+        diagMap.set(child.data.id, diagnoseComment(child.data));
+      }
+    }
+
+    // Report counts to background
+    let ghostCount = 0, liveCount = 0;
+    for (const result of diagMap.values()) {
+      if (result.status === "ghost") ghostCount++;
+      else if (result.status === "live") liveCount++;
+    }
+    chrome.runtime.sendMessage({
+      type: "postghost_badge_update",
+      ghostCount,
+      liveCount,
+      totalCount: diagMap.size,
+      contentType: "comments",
+    });
+
+    requestAnimationFrame(() => {
+      badgeCommentsNewReddit(diagMap);
+      badgeCommentsOldReddit(diagMap);
+    });
+  }
+
+  function badgeCommentsNewReddit(diagMap) {
+    // New Reddit: comments on profile may be shreddit-comment, faceplate-comment, or article
+    const commentEls = document.querySelectorAll("shreddit-comment, faceplate-comment");
+    for (const el of commentEls) {
+      if (el.querySelector(`[${BADGE_ATTR}]`)) continue;
+
+      const thingId = el.getAttribute("thingid") || "";
+      const commentId = thingId.startsWith("t1_") ? thingId.slice(3) : thingId;
+      const result = diagMap.get(commentId);
+      if (!result) continue;
+
+      const badge = createBadge(result);
+      const header = el.querySelector('[slot="commentMeta"], .comment-header, .flex');
+      if (header) {
+        header.insertBefore(badge, header.firstChild);
+      } else {
+        el.insertBefore(badge, el.firstChild);
+      }
+    }
+
+    // Fallback: match comment IDs via permalink <a> tags inside <article> elements or anywhere
+    // New Reddit profile/comments uses <article> with links like /comments/{postid}/xxx/{commentid}/
+    if (commentEls.length === 0) {
+      const articles = document.querySelectorAll("article");
+      for (const article of articles) {
+        if (article.querySelector(`[${BADGE_ATTR}]`)) continue;
+
+        // Find comment permalink inside this article
+        const links = article.querySelectorAll('a[href*="/comments/"]');
+        let matched = false;
+        for (const link of links) {
+          const m = link.href.match(/\/comments\/\w+\/[^/]*\/(\w+)/);
+          if (!m) continue;
+          const result = diagMap.get(m[1]);
+          if (!result) continue;
+
+          const badge = createBadge(result);
+          // Insert badge at the start of the article
+          article.insertBefore(badge, article.firstChild);
+          matched = true;
+          break;
+        }
+      }
+
+      // Final fallback: scan all permalink-style links
+      if (articles.length === 0) {
+        const links = document.querySelectorAll('a[href*="/comments/"]');
+        for (const link of links) {
+          if (link.querySelector(`[${BADGE_ATTR}]`)) continue;
+          const m = link.href.match(/\/comments\/\w+\/[^/]*\/(\w+)/);
+          if (!m) continue;
+          const result = diagMap.get(m[1]);
+          if (!result) continue;
+          const badge = createBadge(result);
+          link.insertBefore(badge, link.firstChild);
+        }
+      }
+    }
+  }
+
+  function badgeCommentsOldReddit(diagMap) {
+    // Old Reddit: comments are .thing elements with data-fullname="t1_xxx"
+    const things = document.querySelectorAll(".thing[data-fullname]");
+    for (const thing of things) {
+      if (thing.querySelector(`[${BADGE_ATTR}]`)) continue;
+
+      const fullname = thing.getAttribute("data-fullname");
+      if (!fullname?.startsWith("t1_")) continue;
+
+      const commentId = fullname.slice(3);
+      const result = diagMap.get(commentId);
+      if (!result) continue;
+
+      const badge = createBadge(result);
+      const entry = thing.querySelector(".entry");
+      if (entry) {
+        entry.insertBefore(badge, entry.firstChild);
+      }
+    }
+  }
+
   // ── Init ────────────────────────────────────────────────────────
 
   function init() {
@@ -511,6 +685,11 @@
     // If on profile posts page, badge all posts
     if (isProfilePostsPage()) {
       badgeProfilePosts();
+    }
+
+    // If on profile comments page, badge all comments
+    if (isProfileCommentsPage()) {
+      badgeProfileComments();
     }
 
     // Watch for SPA navigation

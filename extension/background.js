@@ -6,7 +6,7 @@
  * - Stats for popup
  */
 
-let stats = { ghost: 0, live: 0, total: 0, scanned: false };
+let stats = { ghost: 0, live: 0, total: 0, scanned: false, contentType: "posts" };
 
 function updateBadge() {
   if (stats.ghost > 0) {
@@ -29,6 +29,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       message: msg.message || "One of your posts may have been removed.",
       priority: 2,
     });
+    sendResponse({ ok: true });
+    return;
   }
 
   if (msg.type === "postghost_badge_update") {
@@ -37,12 +39,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       live: msg.liveCount || 0,
       total: msg.totalCount || 0,
       scanned: true,
+      contentType: msg.contentType || "posts",
     };
     updateBadge();
+    sendResponse({ ok: true });
+    return;
   }
 
   if (msg.type === "postghost_get_stats") {
     sendResponse(stats);
-    return true;
+    return;
   }
 });
