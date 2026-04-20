@@ -27,7 +27,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Chrome",
   "offers": [
-    {"@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free — ghost detection, removal cause, status badges on every post."}
+    {"@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free — ghost detection, removal cause, status badges on every post.", "url": "https://chromewebstore.google.com/detail/is-my-post-removed-for-re/gcihfanalejjjidbiofcmhcjhckdhigf"}
   ],
   "author": {
     "@type": "Person",
@@ -138,6 +138,14 @@ td:first-child { color: var(--text-muted); }
 .plan li { font-size: 0.9rem; color: var(--text-muted); padding: 5px 0; }
 .plan li::before { content: '\2713'; color: var(--green); margin-right: 8px; font-weight: 700; }
 
+/* Tap crosslink */
+.tap-strip { max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+.tap-strip-inner { background: var(--bg-surface); border: 1px solid rgba(167,139,250,0.15); border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.tap-strip-text { font-size: 0.9rem; color: var(--text-muted); }
+.tap-strip-text strong { color: var(--text); }
+.tap-strip-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; font-size: 0.88rem; font-weight: 600; color: var(--accent); white-space: nowrap; transition: background 0.15s, border-color 0.15s; }
+.tap-strip-link:hover { background: rgba(124,58,237,0.25); border-color: rgba(167,139,250,0.5); text-decoration: none; }
+
 /* Footer */
 footer { max-width: 800px; margin: 0 auto; padding: 40px 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
 footer .links { display: flex; gap: 20px; }
@@ -170,7 +178,7 @@ footer .links { display: flex; gap: 20px; }
   <h1>Your Reddit post is live.<br>Or is it a <span class="ghost">ghost</span>?</h1>
   <p class="sub">Reddit silently removes posts without telling you. You see your post, but nobody else can. This extension shows the truth in seconds.</p>
   <div class="cta-row">
-    <a href="#" class="btn btn-primary">Add to Chrome — Free</a>
+    <a href="https://chromewebstore.google.com/detail/is-my-post-removed-for-re/gcihfanalejjjidbiofcmhcjhckdhigf" target="_blank" rel="noopener" class="btn btn-primary">Add to Chrome — Free</a>
     <a href="https://github.com/LeonTing1010/postghost" class="btn btn-ghost">View Source</a>
   </div>
 </div>
@@ -271,6 +279,16 @@ footer .links { display: flex; gap: 20px; }
     </div>
   </div>
 </section>
+
+<div class="tap-strip">
+  <div class="tap-strip-inner">
+    <div class="tap-strip-text">
+      <strong>Want to automate your Reddit workflow?</strong><br>
+      PostGhost tells you what Reddit hides. <a href="https://taprun.dev" target="_blank" rel="noopener" style="color:var(--accent)">Tap</a> lets you build programs that check subreddit rules, monitor karma requirements, and run on schedule — no AI needed at runtime.
+    </div>
+    <a href="https://taprun.dev" target="_blank" rel="noopener" class="tap-strip-link">Try Tap →</a>
+  </div>
+</div>
 
 <footer>
   <span>&copy; 2026 PostGhost</span>

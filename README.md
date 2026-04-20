@@ -24,12 +24,9 @@ The extension reads Reddit's `removed_by_category` field from the public `.json`
 
 ## Install
 
-Install manually:
+**[Install from Chrome Web Store](https://chromewebstore.google.com/detail/is-my-post-removed-for-re/gcihfanalejjjidbiofcmhcjhckdhigf)** — free, one click.
 
-1. Download the [latest release](https://github.com/LeonTing1010/postghost/releases)
-2. Unzip and go to `chrome://extensions`
-3. Enable "Developer mode" and click "Load unpacked"
-4. Select the `extension/` folder
+Or install manually from [latest release](https://github.com/LeonTing1010/postghost/releases): unzip → `chrome://extensions` → Developer mode → Load unpacked.
 
 ## Features
 
