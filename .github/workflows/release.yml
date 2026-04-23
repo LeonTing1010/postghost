@@ -45,13 +45,8 @@ jobs:
           npm install -g chrome-webstore-upload-cli
           chrome-webstore-upload upload \
             --source postghost-ext-${{ steps.version.outputs.version }}.zip \
-            --extension-id "$EXTENSION_ID" \
-            --client-id "$CLIENT_ID" \
-            --client-secret "$CLIENT_SECRET" \
-            --refresh-token "$REFRESH_TOKEN" \
+            --extension-id 'gcihfanalejjjidbiofcmhcjhckdhigf' \
+            --client-id '${{ secrets.CWS_CLIENT_ID }}' \
+            --client-secret '${{ secrets.CWS_CLIENT_SECRET }}' \
+            --refresh-token '${{ secrets.CWS_REFRESH_TOKEN }}' \
             --auto-publish
-        env:
-          EXTENSION_ID: gcihfanalejjjidbiofcmhcjhckdhigf
-          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
